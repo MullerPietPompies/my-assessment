@@ -44,7 +44,8 @@ def question_2():
 
     qry = """
         SELECT Name, Surname, Income FROM customers 
-        WHERE Gender = 'Female' ORDER BY Income DESC
+        WHERE Gender = 'Female' 
+        ORDER BY Income DESC
     """
 
     return qry
@@ -58,14 +59,14 @@ def question_3():
     """
     # Not sure if the statement "only 1 loan per cutomer ID" is a fact about the data or a cleaning hint, I found all unique loans first just to be safe
     qry = """
-    WITH unique_loans AS (
-        SELECT DISTINCT CustomerID, LoanTerm, ApprovalStatus FROM loans
-    )
-    -- Select the LoanTerm then use a small window function to calculate the approval percentage
-    SELECT LoanTerm, 100 * SUM(CASE WHEN ApprovalStatus = 'Approved' THEN 1 ELSE 0 END) / COUNT(*) AS ApprovedPercentage
-    FROM unique_loans
-    GROUP BY LoanTerm
-    ORDER BY  LoanTerm
+        WITH unique_loans AS (
+            SELECT DISTINCT CustomerID, LoanTerm, ApprovalStatus FROM loans
+        )
+        -- Select the LoanTerm then use a small window function to calculate the approval percentage
+        SELECT LoanTerm, 100 * SUM(CASE WHEN ApprovalStatus = 'Approved' THEN 1 ELSE 0 END) / COUNT(*) AS ApprovedPercentage
+        FROM unique_loans
+        GROUP BY LoanTerm
+        ORDER BY  LoanTerm
     """
 
     return qry
@@ -78,9 +79,9 @@ def question_4():
     """
 
     qry = """
-    SELECT CustomerClass, Count(*) AS Count FROM credit 
-    GROUP BY CustomerClass 
-    ORDER BY CustomerClass
+        SELECT CustomerClass, Count(*) AS Count FROM credit 
+        GROUP BY CustomerClass 
+        ORDER BY CustomerClass
     """
 
     return qry
@@ -92,9 +93,9 @@ def question_5():
     """
 
     qry = """
-    UPDATE credit
-    SET CustomerClass = 'C'
-    WHERE CreditScore BETWEEN 600 AND 650
+        UPDATE credit
+        SET CustomerClass = 'C'
+        WHERE CreditScore BETWEEN 600 AND 650
     """
 
     return qry
