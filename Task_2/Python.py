@@ -102,6 +102,14 @@ def question_1(df_balances):
         float: The percentage of type 1 defaulted loans (ie 50.0 not 0.5)
 
     """
+    # Find all the months where the actual payment was less than the Scheduled payment
+    missed = df_balances['ActualRepayment'] < df_balances['ScheduledRepayment']
+
+    # Loan Defaults if any of the months were missed therefore I group all the loans by the ID
+    defaulted = missed.groupby(df_balances['LoanID']).any()
+
+    # Using built in mean method because why reinvent the wheel. 
+    default_rate_percent = defaulted.mean() * 100
 
     return default_rate_percent
 
@@ -118,6 +126,19 @@ def question_2(df_scheduled, df_balances):
         float: The percentage of type 2 defaulted loans (ie 50.0 not 0.5)
 
     """
+
+    months_scheduled = df_scheduled.groupby("LoanID")["ScheduledRepayment"].first()
+
+    months_per_loan = df_balances.groupby("LoanID").size()
+
+    expected_total = months_scheduled * months_per_loan
+    actual_total = df_balances.groupby('LoanID')['ActualRepayment'].sum()
+
+    unpaid_share = (expected_total - actual_total)/expected_total
+
+    # Type 2: unpaid_share > 0.15%
+    defaulted = unpaid_share > 0.15
+    default_rate_percent = defaulted.mean() * 100
 
     return default_rate_percent
 
@@ -136,7 +157,18 @@ def question_3(df_balances):
         float: The anualized CPR of the loan portfolio as a percent.
 
     """
+    df = df_balances.copy()
+    df["ActualPrinciple"] = df["LoanBalanceStart"] - df["LoanBalanceEnd"]
 
+    df["ScheduledPrinciple"] = df["ScheduledRepayment"] - df["InterestPayment"]
+
+    df["UnscheduledPrinciple"] = (df["ActualPrinciple"] - df["ScheduledPrinciple"]).clip(lower=0)
+
+    monthly = df.groupby("Month")[["UnscheduledPrinciple", "LoanBalanceStart"]].sum()
+    ssm = monthly["UnscheduledPrinciple"] / monthly["LoanBalanceStart"]
+    SSM_mean = np.prod(1 + ssm) ** (1/12) -1
+
+    cpr_percent = (1 -(1 - SSM_mean)**12) * 100
     return cpr_percent
 
 
@@ -155,5 +187,17 @@ def question_4(df_balances):
         float: The predicted total loss for the second year in the loan term.
 
     """
+
+    # Using a Type 2 Default since it better reflects real risk of loss than Type 1 
+    # Rebuilding the Scheduled dataframe to aviod it not existing if this function is used on its own with only df_balances as input
+    df_schced = df_balances[["LoanID", "ScheduledRepayment"]].drop_duplicates()
+    probability_of_default = question_2(df_schced, df_balances)/100
+
+    last_month = df_balances["Month"].max()
+    total_loan_balance = df_balances.loc[df_balances["Month"] == last_month, "LoanBalanceEnd"].sum()
+
+    recovery_rate = 0.8
+
+    total_loss = probability_of_default * total_loan_balance * (1 - recovery_rate)
 
     return total_loss
