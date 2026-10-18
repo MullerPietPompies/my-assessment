@@ -3,8 +3,8 @@
 This file contains the instructions for the Qtx/Chisl technical assesment.
 It consists of two distinct tasks, these being:
 
-- [ x ] SQL (Task 1)
-- [ x ] Python (Task 2)
+- [x] SQL (Task 1)
+- [x] Python (Task 2)
 
 ## Submission Guidelines
 
