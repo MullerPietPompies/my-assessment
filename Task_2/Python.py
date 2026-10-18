@@ -193,7 +193,9 @@ def question_4(df_balances):
     df_schced = df_balances[["LoanID", "ScheduledRepayment"]].drop_duplicates()
     probability_of_default = question_2(df_schced, df_balances)/100
 
+    # It is known that all loans have a term of 2 years so that getting the end of the 2 year period I can simply call `max()`
     last_month = df_balances["Month"].max()
+
     total_loan_balance = df_balances.loc[df_balances["Month"] == last_month, "LoanBalanceEnd"].sum()
 
     recovery_rate = 0.8
